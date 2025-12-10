@@ -107,32 +107,47 @@
             50% { transform: scale(1.05); }
         }
         
-        /* PDF styling */
+        /* PDF styling - HIDDEN FROM VIEW BUT ACCESSIBLE TO html2pdf */
         #billPDF {
+            position: absolute;
+            left: -10000px;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 40px;
+            width: 210mm;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #333;
         }
         
         .pdf-header {
             text-align: center;
             border-bottom: 3px solid #667eea;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         .pdf-header h2 {
             color: #667eea;
             margin: 0;
+            font-size: 24pt;
         }
         
-        .pdf-content {
-            color: #333;
+        .pdf-header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 10pt;
         }
         
         .pdf-section {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .pdf-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14pt;
+            font-weight: bold;
         }
         
         .pdf-row {
@@ -144,8 +159,10 @@
         
         .pdf-total {
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 16pt;
             margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #333;
         }
     </style>
 </head>
@@ -231,69 +248,6 @@
             
             <!-- Bill Display -->
             <div id="billDisplay" style="display: none;">
-                <!-- Bill content for PDF generation -->
-                <div id="billPDF" style="display: none;">
-                    <div class="pdf-header">
-                        <h2>⚡ ELECTRICITY BILL</h2>
-                        <p style="margin: 5px 0 0 0; color: #666;">Generated on: <span id="pdfDate"></span></p>
-                    </div>
-                    
-                    <div class="pdf-content">
-                        <div class="pdf-section">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">Customer Information</h4>
-                            <div class="pdf-row">
-                                <span><strong>Customer Name:</strong></span>
-                                <span id="pdfName"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>Home ID:</strong></span>
-                                <span id="pdfHomeID"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>Connection Type:</strong></span>
-                                <span id="pdfType"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="pdf-section">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">Current Appliances</h4>
-                            <div class="pdf-row">
-                                <span><strong>🌀 Total Fans:</strong></span>
-                                <span id="pdfFans"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>💡 Total Lights:</strong></span>
-                                <span id="pdfLights"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>🖥️ Total Machines:</strong></span>
-                                <span id="pdfMachines"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="pdf-section">
-                            <h4 style="color: #667eea; margin-bottom: 10px;">Bill Details</h4>
-                            <div class="pdf-row">
-                                <span><strong>Total Units (30 days):</strong></span>
-                                <span id="pdfUnits"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>Energy Charge:</strong></span>
-                                <span id="pdfEnergy"></span>
-                            </div>
-                            <div class="pdf-row">
-                                <span><strong>Meter Charge:</strong></span>
-                                <span>50.00 Taka</span>
-                            </div>
-                            <div class="pdf-row pdf-total">
-                                <span><strong>TOTAL BILL AMOUNT:</strong></span>
-                                <span id="pdfTotal"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Display on screen -->
                 <div class="bill-display">
                     <h3 class="text-center mb-4">📄 ELECTRIC BILL</h3>
                     
@@ -423,6 +377,66 @@
     </div>
 </div>
 
+<!-- HIDDEN PDF TEMPLATE - NOT DISPLAYED ON PAGE BUT USED FOR PDF GENERATION -->
+<div id="billPDF">
+    <div class="pdf-header">
+        <h2>⚡ ELECTRICITY BILL</h2>
+        <p>Generated on: <span id="pdfDate"></span></p>
+    </div>
+    
+    <div class="pdf-section">
+        <h4>Customer Information</h4>
+        <div class="pdf-row">
+            <span><strong>Customer Name:</strong></span>
+            <span id="pdfName"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Home ID:</strong></span>
+            <span id="pdfHomeID"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Connection Type:</strong></span>
+            <span id="pdfType"></span>
+        </div>
+    </div>
+    
+    <div class="pdf-section">
+        <h4>Current Appliances</h4>
+        <div class="pdf-row">
+            <span><strong>Total Fans:</strong></span>
+            <span id="pdfFans"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Total Lights:</strong></span>
+            <span id="pdfLights"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Total Machines:</strong></span>
+            <span id="pdfMachines"></span>
+        </div>
+    </div>
+    
+    <div class="pdf-section">
+        <h4>Bill Details</h4>
+        <div class="pdf-row">
+            <span><strong>Total Units (30 days):</strong></span>
+            <span id="pdfUnits"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Energy Charge:</strong></span>
+            <span id="pdfEnergy"></span>
+        </div>
+        <div class="pdf-row">
+            <span><strong>Meter Charge:</strong></span>
+            <span>50.00 Taka</span>
+        </div>
+        <div class="pdf-row pdf-total">
+            <span><strong>TOTAL BILL AMOUNT:</strong></span>
+            <span id="pdfTotal"></span>
+        </div>
+    </div>
+</div>
+
 <script>
     // Constants
     const WATT_FAN = 75;
@@ -455,7 +469,6 @@
     });
     
     function calculateBill() {
-        // Get and store input values
         state.name = document.getElementById('customerName').value;
         state.homeID = document.getElementById('homeID').value;
         state.type = document.getElementById('connectionType').value;
@@ -468,14 +481,12 @@
         state.hoursLight = parseFloat(document.getElementById('hoursLight').value);
         state.hoursMachine = parseFloat(document.getElementById('hoursMachine').value);
         
-        // Determine rate
         state.rate = (state.type === 'H') ? RATE_HOUSEHOLD : RATE_COMMERCIAL;
         
         displayBill();
     }
     
     function displayBill() {
-        // Calculate consumption
         const fanConsumption = (state.fans * WATT_FAN * state.hoursFan) / 1000.0;
         const lightConsumption = (state.lights * WATT_LIGHT * state.hoursLight) / 1000.0;
         const machineConsumption = (state.machines * WATT_MACHINE * state.hoursMachine) / 1000.0;
@@ -488,7 +499,7 @@
         
         const typeText = (state.type === 'H') ? 'Household (7 tk/unit)' : 'Commercial (10 tk/unit)';
         
-        // Display results on screen
+        // Display on screen
         document.getElementById('displayName').textContent = state.name;
         document.getElementById('displayHomeID').textContent = state.homeID;
         document.getElementById('displayType').textContent = typeText;
@@ -501,7 +512,14 @@
         document.getElementById('energyCharge').textContent = state.energyBill.toFixed(2) + ' Taka';
         document.getElementById('totalBill').textContent = state.totalBill.toFixed(2) + ' Taka';
         
-        // Set PDF data
+        // Update PDF data
+        const today = new Date();
+        document.getElementById('pdfDate').textContent = today.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        
         document.getElementById('pdfName').textContent = state.name;
         document.getElementById('pdfHomeID').textContent = state.homeID;
         document.getElementById('pdfType').textContent = typeText;
@@ -512,20 +530,10 @@
         document.getElementById('pdfEnergy').textContent = state.energyBill.toFixed(2) + ' Taka';
         document.getElementById('pdfTotal').textContent = state.totalBill.toFixed(2) + ' Taka';
         
-        // Set current date for PDF
-        const today = new Date();
-        document.getElementById('pdfDate').textContent = today.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-        
-        // Show bill display
         document.getElementById('billDisplay').style.display = 'block';
         document.getElementById('addMoreForm').style.display = 'none';
         document.getElementById('finalBill').style.display = 'none';
         
-        // Scroll to bill
         document.getElementById('billDisplay').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
     
@@ -533,7 +541,6 @@
         document.getElementById('addMoreForm').style.display = 'block';
         document.getElementById('billDisplay').style.display = 'none';
         
-        // Clear add more fields
         document.getElementById('addFans').value = '0';
         document.getElementById('addLights').value = '0';
         document.getElementById('addMachines').value = '0';
@@ -550,7 +557,6 @@
     }
     
     function updateBill() {
-        // Get additional appliances
         const addFans = parseInt(document.getElementById('addFans').value);
         const addLights = parseInt(document.getElementById('addLights').value);
         const addMachines = parseInt(document.getElementById('addMachines').value);
@@ -559,17 +565,14 @@
         const addHoursLight = parseFloat(document.getElementById('addHoursLight').value);
         const addHoursMachine = parseFloat(document.getElementById('addHoursMachine').value);
         
-        // Store old values for weighted average
         const oldFans = state.fans;
         const oldLights = state.lights;
         const oldMachines = state.machines;
         
-        // Update totals
         state.fans += addFans;
         state.lights += addLights;
         state.machines += addMachines;
         
-        // Weighted average update for hours
         if (state.fans > 0) {
             state.hoursFan = ((state.hoursFan * oldFans) + (addHoursFan * addFans)) / state.fans;
         }
@@ -580,7 +583,6 @@
             state.hoursMachine = ((state.hoursMachine * oldMachines) + (addHoursMachine * addMachines)) / state.machines;
         }
         
-        // Recalculate and display
         displayBill();
     }
     
@@ -593,10 +595,10 @@
     function downloadPDF() {
         const element = document.getElementById('billPDF');
         const opt = {
-            margin: 10,
+            margin: 15,
             filename: `electricity-bill-${state.homeID}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 2, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
