@@ -16,7 +16,7 @@
         }
         
         .calculator-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 30px auto;
             background: white;
             border-radius: 20px;
@@ -83,9 +83,25 @@
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
         
+        .add-more-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
         .appliance-icon {
             font-size: 1.5rem;
             margin-right: 10px;
+        }
+        
+        .pulse-btn {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
     </style>
 </head>
@@ -95,7 +111,7 @@
         <!-- Header -->
         <div class="header-section">
             <h1>⚡ Electricity Bill Calculator</h1>
-            <p class="mb-0">Calculate your monthly electricity consumption and bill</p>
+            <p class="mb-0">Calculate your monthly electricity consumption with dynamic appliance management</p>
         </div>
         
         <!-- Form Section -->
@@ -187,18 +203,18 @@
                         <strong id="displayType"></strong>
                     </div>
                     
-                    <div class="mt-4 mb-2"><strong>Consumption Breakdown:</strong></div>
+                    <div class="mt-4 mb-2"><strong>Current Appliances:</strong></div>
                     <div class="bill-row">
-                        <span>🌀 Fans Consumption:</span>
-                        <strong id="fanConsumption">0</strong>
+                        <span>🌀 Total Fans:</span>
+                        <strong id="totalFans">0</strong>
                     </div>
                     <div class="bill-row">
-                        <span>💡 Lights Consumption:</span>
-                        <strong id="lightConsumption">0</strong>
+                        <span>💡 Total Lights:</span>
+                        <strong id="totalLights">0</strong>
                     </div>
                     <div class="bill-row">
-                        <span>🖥️ Machines Consumption:</span>
-                        <strong id="machineConsumption">0</strong>
+                        <span>🖥️ Total Machines:</span>
+                        <strong id="totalMachines">0</strong>
                     </div>
                     
                     <div class="mt-4 mb-2"><strong>Bill Details:</strong></div>
@@ -222,13 +238,77 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Add More Appliances Section -->
+                <div class="add-more-section">
+                    <h5 class="text-center mb-3">Do you want to add more appliances?</h5>
+                    <div class="text-center">
+                        <button class="btn btn-success btn-lg pulse-btn" onclick="showAddMore()">
+                            ➕ Add More Appliances
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg ms-2" onclick="finalizeBill()">
+                            ✅ Finalize Bill
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add More Form -->
+            <div id="addMoreForm" style="display: none;">
+                <div class="section-title">➕ Add More Appliances</div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><span class="appliance-icon">🌀</span>Fans to Add</label>
+                        <input type="number" class="form-control" id="addFans" min="0" value="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hours/day for new Fans</label>
+                        <input type="number" step="0.1" class="form-control" id="addHoursFan" min="0" max="24" value="0">
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><span class="appliance-icon">💡</span>Lights to Add</label>
+                        <input type="number" class="form-control" id="addLights" min="0" value="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hours/day for new Lights</label>
+                        <input type="number" step="0.1" class="form-control" id="addHoursLight" min="0" max="24" value="0">
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label"><span class="appliance-icon">🖥️</span>Machines to Add</label>
+                        <input type="number" class="form-control" id="addMachines" min="0" value="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hours/day for new Machines</label>
+                        <input type="number" step="0.1" class="form-control" id="addHoursMachine" min="0" max="24" value="0">
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn btn-primary btn-lg" onclick="updateBill()">Update Bill</button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="cancelAddMore()">Cancel</button>
+                </div>
+            </div>
+            
+            <!-- Final Bill -->
+            <div id="finalBill" style="display: none;">
+                <div class="alert alert-success text-center">
+                    <h4>✅ Bill Finalized!</h4>
+                    <p class="mb-0">Thank you for using our electricity bill calculator.</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Constants matching your C code
+    // Constants
     const WATT_FAN = 75;
     const WATT_LIGHT = 20;
     const WATT_MACHINE = 200;
@@ -236,49 +316,67 @@
     const RATE_HOUSEHOLD = 7;
     const RATE_COMMERCIAL = 10;
     
+    // Global state
+    let state = {
+        name: '',
+        homeID: '',
+        type: '',
+        rate: 0,
+        fans: 0,
+        lights: 0,
+        machines: 0,
+        hoursFan: 0,
+        hoursLight: 0,
+        hoursMachine: 0
+    };
+    
     document.getElementById('billForm').addEventListener('submit', function(e) {
         e.preventDefault();
         calculateBill();
     });
     
     function calculateBill() {
-        // Get input values
-        const name = document.getElementById('customerName').value;
-        const homeID = document.getElementById('homeID').value;
-        const type = document.getElementById('connectionType').value;
+        // Get and store input values
+        state.name = document.getElementById('customerName').value;
+        state.homeID = document.getElementById('homeID').value;
+        state.type = document.getElementById('connectionType').value;
         
-        const numFans = parseInt(document.getElementById('numFans').value);
-        const numLights = parseInt(document.getElementById('numLights').value);
-        const numMachines = parseInt(document.getElementById('numMachines').value);
+        state.fans = parseInt(document.getElementById('numFans').value);
+        state.lights = parseInt(document.getElementById('numLights').value);
+        state.machines = parseInt(document.getElementById('numMachines').value);
         
-        const hoursFan = parseFloat(document.getElementById('hoursFan').value);
-        const hoursLight = parseFloat(document.getElementById('hoursLight').value);
-        const hoursMachine = parseFloat(document.getElementById('hoursMachine').value);
+        state.hoursFan = parseFloat(document.getElementById('hoursFan').value);
+        state.hoursLight = parseFloat(document.getElementById('hoursLight').value);
+        state.hoursMachine = parseFloat(document.getElementById('hoursMachine').value);
         
-        // Calculate consumption (matching your C code formula)
-        const fanConsumption = (numFans * WATT_FAN * hoursFan) / 1000.0;
-        const lightConsumption = (numLights * WATT_LIGHT * hoursLight) / 1000.0;
-        const machineConsumption = (numMachines * WATT_MACHINE * hoursMachine) / 1000.0;
+        // Determine rate
+        state.rate = (state.type === 'H') ? RATE_HOUSEHOLD : RATE_COMMERCIAL;
+        
+        displayBill();
+    }
+    
+    function displayBill() {
+        // Calculate consumption
+        const fanConsumption = (state.fans * WATT_FAN * state.hoursFan) / 1000.0;
+        const lightConsumption = (state.lights * WATT_LIGHT * state.hoursLight) / 1000.0;
+        const machineConsumption = (state.machines * WATT_MACHINE * state.hoursMachine) / 1000.0;
         
         const unitsPerDay = fanConsumption + lightConsumption + machineConsumption;
         const units30 = unitsPerDay * 30;
         
-        // Determine rate
-        const rate = (type === 'H') ? RATE_HOUSEHOLD : RATE_COMMERCIAL;
-        const typeText = (type === 'H') ? 'Household (7 tk/unit)' : 'Commercial (10 tk/unit)';
-        
-        // Calculate bills
-        const energyBill = units30 * rate;
+        const energyBill = units30 * state.rate;
         const totalBill = energyBill + METER_CHARGE;
         
+        const typeText = (state.type === 'H') ? 'Household (7 tk/unit)' : 'Commercial (10 tk/unit)';
+        
         // Display results
-        document.getElementById('displayName').textContent = name;
-        document.getElementById('displayHomeID').textContent = homeID;
+        document.getElementById('displayName').textContent = state.name;
+        document.getElementById('displayHomeID').textContent = state.homeID;
         document.getElementById('displayType').textContent = typeText;
         
-        document.getElementById('fanConsumption').textContent = fanConsumption.toFixed(2) + ' kWh/day';
-        document.getElementById('lightConsumption').textContent = lightConsumption.toFixed(2) + ' kWh/day';
-        document.getElementById('machineConsumption').textContent = machineConsumption.toFixed(2) + ' kWh/day';
+        document.getElementById('totalFans').textContent = state.fans;
+        document.getElementById('totalLights').textContent = state.lights;
+        document.getElementById('totalMachines').textContent = state.machines;
         
         document.getElementById('totalUnits').textContent = units30.toFixed(2) + ' units';
         document.getElementById('energyCharge').textContent = energyBill.toFixed(2) + ' Taka';
@@ -286,14 +384,85 @@
         
         // Show bill display
         document.getElementById('billDisplay').style.display = 'block';
+        document.getElementById('addMoreForm').style.display = 'none';
+        document.getElementById('finalBill').style.display = 'none';
         
         // Scroll to bill
         document.getElementById('billDisplay').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
     
+    function showAddMore() {
+        document.getElementById('addMoreForm').style.display = 'block';
+        document.getElementById('billDisplay').style.display = 'none';
+        
+        // Clear add more fields
+        document.getElementById('addFans').value = '0';
+        document.getElementById('addLights').value = '0';
+        document.getElementById('addMachines').value = '0';
+        document.getElementById('addHoursFan').value = '0';
+        document.getElementById('addHoursLight').value = '0';
+        document.getElementById('addHoursMachine').value = '0';
+        
+        document.getElementById('addMoreForm').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function cancelAddMore() {
+        document.getElementById('addMoreForm').style.display = 'none';
+        document.getElementById('billDisplay').style.display = 'block';
+    }
+    
+    function updateBill() {
+        // Get additional appliances
+        const addFans = parseInt(document.getElementById('addFans').value);
+        const addLights = parseInt(document.getElementById('addLights').value);
+        const addMachines = parseInt(document.getElementById('addMachines').value);
+        
+        const addHoursFan = parseFloat(document.getElementById('addHoursFan').value);
+        const addHoursLight = parseFloat(document.getElementById('addHoursLight').value);
+        const addHoursMachine = parseFloat(document.getElementById('addHoursMachine').value);
+        
+        // Store old values for weighted average
+        const oldFans = state.fans;
+        const oldLights = state.lights;
+        const oldMachines = state.machines;
+        
+        // Update totals
+        state.fans += addFans;
+        state.lights += addLights;
+        state.machines += addMachines;
+        
+        // Weighted average update for hours (matching C code logic)
+        if (state.fans > 0) {
+            state.hoursFan = ((state.hoursFan * oldFans) + (addHoursFan * addFans)) / state.fans;
+        }
+        if (state.lights > 0) {
+            state.hoursLight = ((state.hoursLight * oldLights) + (addHoursLight * addLights)) / state.lights;
+        }
+        if (state.machines > 0) {
+            state.hoursMachine = ((state.hoursMachine * oldMachines) + (addHoursMachine * addMachines)) / state.machines;
+        }
+        
+        // Recalculate and display
+        displayBill();
+    }
+    
+    function finalizeBill() {
+        document.getElementById('billDisplay').style.display = 'none';
+        document.getElementById('finalBill').style.display = 'block';
+        document.getElementById('finalBill').scrollIntoView({ behavior: 'smooth' });
+    }
+    
     function resetForm() {
         document.getElementById('billForm').reset();
         document.getElementById('billDisplay').style.display = 'none';
+        document.getElementById('addMoreForm').style.display = 'none';
+        document.getElementById('finalBill').style.display = 'none';
+        
+        state = {
+            name: '', homeID: '', type: '', rate: 0,
+            fans: 0, lights: 0, machines: 0,
+            hoursFan: 0, hoursLight: 0, hoursMachine: 0
+        };
     }
 </script>
 </body>
